@@ -189,3 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#39;');
   }
 });
+
+
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+};

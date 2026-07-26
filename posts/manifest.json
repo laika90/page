@@ -12,5 +12,12 @@
     "summary": "静的ファイルだけで公開するための最小構成メモ。",
     "path": "posts/dev/2026-07-24-github-pages.md",
     "dir": "posts/dev"
+  },
+  {
+    "title": "postのサンプル",
+    "date" : "2026-7-26",
+    "summary": "サンプルとしてレンダリング",
+    "path": "posts/thermal.md",
+    "dir": "post"
   }
 ]
