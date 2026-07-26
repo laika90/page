@@ -1,3 +1,16 @@
 [
-  "posts/thermal.md"
+  {
+    "title": "LaTeX を使う記事テンプレート",
+    "date": "2026-07-26",
+    "summary": "数式を含む研究メモのサンプル。",
+    "path": "posts/research/thermal/2026-07-26-lhp.md",
+    "dir": "posts/research/thermal"
+  },
+  {
+    "title": "GitHub Pages に置く最小構成",
+    "date": "2026-07-24",
+    "summary": "静的ファイルだけで公開するための最小構成メモ。",
+    "path": "posts/dev/2026-07-24-github-pages.md",
+    "dir": "posts/dev"
+  }
 ]

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Notes</title>
+  <meta name="description" content="GitHub Pages向けの、ディレクトリ構成で管理しやすいLaTeX対応サイト原型" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <script>
+    (function () {
+      const saved = localStorage.getItem('theme');
+      const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = saved || (systemDark ? 'dark' : 'light');
+    })();
+  </script>
+</head>
+<body>
+  <header class="header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <p class="brand-title">My Notes</p>
+          <p class="brand-subtitle">directory-based blog starter</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#posts">記事</a>
+        <a href="#structure">構成</a>
+        <a href="#about">概要</a>
+        <button class="button" id="themeBtn" type="button">Theme</button>
+      </nav>
+    </div>
+  </header>
+
+
+  <main class="wrap">
+    <article class="article active" id="articleView">
+      <h1 id="articleTitle"></h1>
+      <div class="meta" id="articleMeta"></div>
+      <div id="articleBody"></div>
+    </article>
+  </main>
+
+  <div id="article"></div>
+  <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="assets/js/post.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</body>
+</html>
