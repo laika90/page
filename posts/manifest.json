@@ -4,20 +4,27 @@
     "date": "2026-07-26",
     "summary": "数式を含む研究メモのサンプル。",
     "path": "posts/research/thermal/2026-07-26-lhp.md",
-    "dir": "posts/research/thermal"
+    "tag": "research"
   },
   {
     "title": "GitHub Pages に置く最小構成",
     "date": "2026-07-24",
     "summary": "静的ファイルだけで公開するための最小構成メモ。",
     "path": "posts/dev/2026-07-24-github-pages.md",
-    "dir": "posts/dev"
+    "tag": "develop"
   },
   {
     "title": "postのサンプル",
     "date" : "2026-7-26",
     "summary": "サンプルとしてレンダリング",
     "path": "posts/thermal.md",
-    "dir": "post"
+    "tag": "thermal"
+  },
+  {
+    "title": "ふたつめのサンプル",
+    "date" : "2026-7-27",
+    "summary": "ふたつめのサンプルを作成しました",
+    "path": "posts/theraaaaa.md",
+    "tag": ["thermal", "research", "develop", "problem"]
   }
 ]

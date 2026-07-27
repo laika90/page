@@ -70,68 +70,6 @@
           <div class="meta" id="currentDirPath">/</div>
         </div>
         <div class="posts" id="postList"></div>
-
-        <article class="article active" id="articleView">
-          <h2 id="articleTitle">記事を選択してください</h2>
-          <div class="meta" id="articleMeta">左の一覧から開いた記事がここに表示されます。</div>
-          <div id="articleBody">
-            <p>
-              この原型では、各記事に <code>path</code> を持たせて、ディレクトリ単位で管理する前提にしています。
-              たとえば <code>posts/research/thermal/lhp.md</code> のように置けば、サイト上でもその所属が分かります。
-            </p>
-            <div class="math-note">
-              例: <code>\(E = mc^2\)</code> や <code>$$\int_0^1 x^2\,dx = \frac{1}{3}$$</code>
-            </div>
-            <h3>管理の考え方</h3>
-            <p>
-              タグは補助情報として使い、主分類はディレクトリに任せる構成です。
-              すると、研究メモ・旅行記・技術記事のような“内容の置き場所”が明確になります。
-            </p>
-          </div>
-        </article>
-
-        <section class="panel" id="structure">
-          <h3>ディレクトリ構成の例</h3>
-          <pre><code>repo/
-├─ index.html
-├─ assets/
-│  ├─ css/
-│  └─ js/
-└─ posts/
-   ├─ research/
-   │  ├─ thermal/
-   │  │  ├─ 2026-07-26-lhp.md
-   │  │  └─ 2026-07-24-cpl.md
-   │  └─ mission/
-   │     └─ 2026-07-20-dsotv.md
-   ├─ dev/
-   │  └─ 2026-07-18-github-pages.md
-   └─ diary/
-      └─ 2026-07-15-trip.md</code></pre>
-          <p class="meta">
-            この形なら、プログラム上でも <code>path</code> の先頭部分で分類しやすく、サイト上でもフォルダツリーとして見せやすいです。
-          </p>
-        </section>
-
-        <section class="panel" id="about">
-          <h3>この原型でやっていること</h3>
-          <div class="feature-list">
-            <div class="feature"><strong>主分類はフォルダ</strong><small>記事の意味をタグではなく配置で表します。</small></div>
-            <div class="feature"><strong>CSS は変数中心</strong><small>色・余白・角丸をまとめて変更できます。</small></div>
-            <div class="feature"><strong>記事は path で管理</strong><small>プログラム側でも扱いやすいです。</small></div>
-            <div class="feature"><strong>数式はそのまま</strong><small>MathJax で LaTeX を表示できます。</small></div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <h3>拡張するときの方針</h3>
-          <ul style="margin:0; padding-left: 1.2em; color: var(--muted);">
-            <li>記事本文を Markdown に分離する</li>
-            <li><code>posts/</code> 配下をフォルダ単位で読み込む</li>
-            <li>各記事の front matter に <code>title</code>, <code>date</code>, <code>path</code> を持たせる</li>
-            <li>一覧はフォルダ階層で折りたたみ表示にする</li>
-          </ul>
-        </section>
       </div>
     </section>
 
@@ -144,7 +82,6 @@
   </main>
 
   <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <!-- <script defer src="assets/js/main.js"></script> -->
   <script defer src="assets/js/index.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </body>

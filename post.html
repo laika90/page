@@ -28,7 +28,7 @@
         <a href="index.html#posts">記事</a>
         <a href="index.html#structure">構成</a>
         <a href="index.html#about">概要</a>
-        <a class="button" href="index.html">Back</a>
+        <a class="button" id="themeBtn", type="button">Theme</a>
       </nav>
     </div>
   </header>
@@ -42,34 +42,17 @@
       </div>
     </section>
 
-    <section class="layout" id="posts">
-      <aside class="sidebar">
-        <h3>Navigation</h3>
-        <div class="stack">
-          <a class="button" href="index.html#posts">記事一覧へ戻る</a>
-          <a class="button" href="index.html#structure">構成を見る</a>
-          <a class="button" href="index.html#about">概要を見る</a>
-        </div>
-
-        <div style="height:12px"></div>
-
-        <h3>Theme</h3>
-        <button class="button" id="themeBtn" type="button">Theme</button>
-      </aside>
+    <!-- <section class="layout" id="posts"> -->
+    <section class="layout-post" id="posts">
+      <!-- <aside class="sidebar"> -->
+      <!-- </aside> -->
 
       <div>
         <article class="article active" id="articleView">
           <div id="articleBody">
-            <p>読み込み中...</p>
           </div>
         </article>
 
-        <section class="panel">
-          <h3>この記事について</h3>
-          <p class="meta">
-            Markdown ファイルから読み込んだ本文がここに表示されます。数式は MathJax でレンダリングされます。
-          </p>
-        </section>
       </div>
     </section>
 

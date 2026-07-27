@@ -131,6 +131,8 @@ code {
   padding: 22px 0 30px;
   align-items: start;
 }
+.layout-post {
+}
 .sidebar,
 .panel,
 .card,
@@ -218,10 +220,20 @@ code {
 }
 .card-top {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 8px;
+}
+.card-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.card-date {
+  white-space: nowrap;
+  flex: none;
 }
 .badge {
   display: inline-flex;

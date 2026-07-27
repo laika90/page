@@ -6,19 +6,19 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput: document.getElementById('searchInput'),
     postList: document.getElementById('postList'),
     resultCount: document.getElementById('resultCount'),
-    currentDirTitle: document.getElementById('currentDirTitle'),
-    currentDirPath: document.getElementById('currentDirPath'),
+    currentTagTitle: document.getElementById('currentDirTitle'),
+    currentTagPath: document.getElementById('currentDirPath'),
     themeBtn: document.getElementById('themeBtn'),
     year: document.getElementById('year'),
   };
 
   const state = {
     query: '',
-    dir: 'all',
+    tag: 'all',
   };
 
   let posts = [];
-  let dirs = ['all'];
+  let tags = ['all'];
 
   init().catch((error) => {
     console.error(error);
@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
     bindSearch();
 
     posts = await loadManifest();
-    dirs = ['all', ...new Set(posts.map((p) => p.dir || 'uncategorized'))].sort((a, b) =>
-      a.localeCompare(b)
+    tags = ['all', ...new Set(posts.flatMap((p) => p.tags))].sort((a, b) =>
+      a.localeCompare(b, 'ja')
     );
 
     render();
@@ -51,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const data = await response.json();
 
-    // いろいろな manifest 形式を吸収
     if (Array.isArray(data)) {
       if (data.length > 0 && typeof data[0] === 'string') {
         return data.map((path) => normalizePost({ path }));
@@ -72,13 +71,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function normalizePost(post) {
     const path = post.path || '';
+    const tags = normalizeTags(post.tags || post.tag || post.dir);
+
     return {
       title: post.title || titleFromPath(path),
       date: post.date || '',
       summary: post.summary || '',
       path,
-      dir: post.dir || pathDirectory(path),
+      tags: tags.length ? tags : ['未分類'],
     };
+  }
+
+  function normalizeTags(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map(String).map((s) => s.trim()).filter(Boolean);
+    return String(value)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
   function render() {
@@ -88,19 +98,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderTree() {
     const counts = Object.fromEntries(
-      dirs.map((d) => [
-        d,
-        d === 'all' ? posts.length : posts.filter((p) => p.dir === d).length,
+      tags.map((t) => [
+        t,
+        t === 'all' ? posts.length : posts.filter((p) => p.tags.includes(t)).length,
       ])
     );
 
     els.treeList.innerHTML = '';
-    dirs.forEach((dir) => {
+    tags.forEach((tag) => {
       const li = document.createElement('li');
-      li.className = `tree-item ${state.dir === dir ? 'active' : ''}`;
-      li.innerHTML = `<span>${dir === 'all' ? 'All articles' : dir}</span><span class="count">${counts[dir]}</span>`;
+      li.className = `tree-item ${state.tag === tag ? 'active' : ''}`;
+      li.innerHTML = `<span>${tag === 'all' ? 'All articles' : tag}</span><span class="count">${counts[tag]}</span>`;
       li.addEventListener('click', () => {
-        state.dir = dir;
+        state.tag = tag;
         render();
       });
       els.treeList.appendChild(li);
@@ -112,10 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return posts
       .filter((post) => {
-        const byDir = state.dir === 'all' || post.dir === state.dir;
-        const haystack = [post.title, post.summary, post.dir, post.path].join(' ').toLowerCase();
+        const byTag = state.tag === 'all' || post.tags.includes(state.tag);
+        const haystack = [post.title, post.summary, post.tags.join(' '), post.path].join(' ').toLowerCase();
         const byQuery = !q || haystack.includes(q);
-        return byDir && byQuery;
+        return byTag && byQuery;
       })
       .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   }
@@ -123,8 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderPosts() {
     const list = filteredPosts();
     els.resultCount.textContent = `${list.length}件`;
-    els.currentDirTitle.textContent = state.dir === 'all' ? 'All articles' : state.dir;
-    els.currentDirPath.textContent = state.dir === 'all' ? '/' : `/${state.dir}/`;
+    els.currentTagTitle.textContent = state.tag === 'all' ? 'All articles' : state.tag;
+    els.currentTagPath.textContent = state.tag === 'all' ? 'tag: all' : `tag: ${state.tag}`;
     els.postList.innerHTML = '';
 
     if (!list.length) {
@@ -138,14 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
       card.href = `post.html?path=${encodeURIComponent(post.path)}`;
       card.innerHTML = `
         <div class="card-top">
-          <span class="badge">${escapeHtml(post.dir)}</span>
-          <span class="meta">${escapeHtml(post.date)}</span>
+          <div class="card-tags">
+            ${post.tags.map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`).join('')}
+          </div>
+          <span class="meta card-date">${escapeHtml(post.date)}</span>
         </div>
         <h4>${escapeHtml(post.title)}</h4>
         <p class="excerpt">${escapeHtml(post.summary)}</p>
-        <div class="tag-row">
-          <span class="path">${escapeHtml(post.path)}</span>
-        </div>
       `;
       els.postList.appendChild(card);
     });
@@ -166,12 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function pathDirectory(path) {
-    const parts = String(path).split('/');
-    parts.pop();
-    return parts.join('/');
-  }
-
   function titleFromPath(path) {
     const file = String(path).split('/').pop() || '';
     return file
@@ -189,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#39;');
   }
 });
-
 
 window.MathJax = {
   tex: {
