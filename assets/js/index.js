@@ -12,9 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     year: document.getElementById('year'),
   };
 
+  const PAGE_SIZE = 6;
+
   const state = {
     query: '',
     tag: 'all',
+    page: 1,
   };
 
   let posts = [];
@@ -109,13 +112,38 @@ document.addEventListener('DOMContentLoaded', () => {
       const li = document.createElement('li');
       li.className = `tree-item ${state.tag === tag ? 'active' : ''}`;
       li.innerHTML = `<span>${tag === 'all' ? 'All articles' : tag}</span><span class="count">${counts[tag]}</span>`;
+
       li.addEventListener('click', () => {
         state.tag = tag;
+        state.page = 1;
         render();
       });
+
       els.treeList.appendChild(li);
     });
   }
+
+
+  // function renderTree() {
+  //   const counts = Object.fromEntries(
+  //     tags.map((t) => [
+  //       t,
+  //       t === 'all' ? posts.length : posts.filter((p) => p.tags.includes(t)).length,
+  //     ])
+  //   );
+  //
+  //   els.treeList.innerHTML = '';
+  //   tags.forEach((tag) => {
+  //     const li = document.createElement('li');
+  //     li.className = `tree-item ${state.tag === tag ? 'active' : ''}`;
+  //     li.innerHTML = `<span>${tag === 'all' ? 'All articles' : tag}</span><span class="count">${counts[tag]}</span>`;
+  //     li.addEventListener('click', () => {
+  //       state.tag = tag;
+  //       render();
+  //     });
+  //     els.treeList.appendChild(li);
+  //   });
+  // }
 
   function filteredPosts() {
     const q = state.query.trim().toLowerCase();
@@ -132,17 +160,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderPosts() {
     const list = filteredPosts();
+    const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    state.page = Math.min(state.page, totalPages);
+
+    const start = (state.page - 1) * PAGE_SIZE;
+    const pageItems = list.slice(start, start + PAGE_SIZE);
+
     els.resultCount.textContent = `${list.length}件`;
     els.currentTagTitle.textContent = state.tag === 'all' ? 'All articles' : state.tag;
     els.currentTagPath.textContent = state.tag === 'all' ? 'tag: all' : `tag: ${state.tag}`;
     els.postList.innerHTML = '';
 
-    if (!list.length) {
+    if (!pageItems.length) {
       els.postList.innerHTML = '<div class="card">該当する記事がありません。</div>';
+      renderPagination(0);
       return;
     }
 
-    list.forEach((post) => {
+    pageItems.forEach((post) => {
       const card = document.createElement('a');
       card.className = 'card';
       card.href = `post.html?path=${encodeURIComponent(post.path)}`;
@@ -158,14 +193,123 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       els.postList.appendChild(card);
     });
+
+    renderPagination(totalPages);
+  }
+
+  // function renderPosts() {
+  //   const list = filteredPosts();
+  //   els.resultCount.textContent = `${list.length}件`;
+  //   els.currentTagTitle.textContent = state.tag === 'all' ? 'All articles' : state.tag;
+  //   els.currentTagPath.textContent = state.tag === 'all' ? 'tag: all' : `tag: ${state.tag}`;
+  //   els.postList.innerHTML = '';
+  //
+  //   if (!list.length) {
+  //     els.postList.innerHTML = '<div class="card">該当する記事がありません。</div>';
+  //     return;
+  //   }
+  //
+  //   list.forEach((post) => {
+  //     const card = document.createElement('a');
+  //     card.className = 'card';
+  //     card.href = `post.html?path=${encodeURIComponent(post.path)}`;
+  //     card.innerHTML = `
+  //       <div class="card-top">
+  //         <div class="card-tags">
+  //           ${post.tags.map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`).join('')}
+  //         </div>
+  //         <span class="meta card-date">${escapeHtml(post.date)}</span>
+  //       </div>
+  //       <h4>${escapeHtml(post.title)}</h4>
+  //       <p class="excerpt">${escapeHtml(post.summary)}</p>
+  //     `;
+  //     els.postList.appendChild(card);
+  //   });
+  // }
+  //
+
+  function renderPagination(totalPages) {
+    const paginationEl = document.getElementById('pagination');
+    if (!paginationEl) return;
+
+    paginationEl.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    const createButton = (label, page, disabled = false, active = false) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `page-btn ${active ? 'active' : ''}`;
+      btn.textContent = label;
+      btn.disabled = disabled;
+      btn.addEventListener('click', () => {
+        if (page === state.page) return;
+        state.page = page;
+        renderPosts();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      return btn;
+    };
+
+    paginationEl.appendChild(
+      createButton('Prev', Math.max(1, state.page - 1), state.page === 1)
+    );
+
+    const pages = buildPageList(totalPages, state.page);
+    pages.forEach((item) => {
+      if (item === '...') {
+        const span = document.createElement('span');
+        span.className = 'page-ellipsis';
+        span.textContent = '...';
+        paginationEl.appendChild(span);
+      } else {
+        paginationEl.appendChild(
+          createButton(String(item), item, false, item === state.page)
+        );
+      }
+    });
+
+    paginationEl.appendChild(
+      createButton('Next', Math.min(totalPages, state.page + 1), state.page === totalPages)
+    );
+  }
+
+  function buildPageList(totalPages, currentPage) {
+    const pages = [];
+    const delta = 2;
+
+    const left = Math.max(2, currentPage - delta);
+    const right = Math.min(totalPages - 1, currentPage + delta);
+
+    pages.push(1);
+
+    if (left > 2) pages.push('...');
+
+    for (let p = left; p <= right; p++) {
+      pages.push(p);
+    }
+ 
+    if (right < totalPages - 1) pages.push('...');
+
+    if (totalPages > 1) pages.push(totalPages);
+
+    return [...new Set(pages)];
   }
 
   function bindSearch() {
     els.searchInput.addEventListener('input', (e) => {
       state.query = e.target.value;
+      state.page = 1;
       renderPosts();
     });
   }
+
+
+  // function bindSearch() {
+  //   els.searchInput.addEventListener('input', (e) => {
+  //     state.query = e.target.value;
+  //     renderPosts();
+  //   });
+  // }
 
   function bindThemeToggle() {
     els.themeBtn.addEventListener('click', () => {
