@@ -4,84 +4,62 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Keishiro Sakamoto</title>
-  <meta name="description" content="Home page" />
+  <meta name="description" content="学んだことや考えたことの備忘録" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" />
+  <link rel="stylesheet" href="assets/css/theme.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
-  <script>
-    (function () {
-      const saved = localStorage.getItem('theme');
-      const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.dataset.theme = saved || (systemDark ? 'dark' : 'light');
-    })();
-  </script>
+  <script src="assets/js/config.js"></script>
+  <script defer src="assets/js/common.js"></script>
+  <script defer src="assets/js/index.js"></script>
 </head>
 <body>
-  <header class="header">
-    <div class="wrap header-inner">
-      <div class="brand">
-        <a href="index.html" class="brand">
-        <div class="brand-mark" aria-hidden="true"></div>
-        <div>
-          <p class="brand-title">Keishiro Sakamoto</p>
-          <p class="brand-subtitle"></p>
-        </div>
-        </a>
-      </div>
-      <nav class="nav">
-        <a href="#posts">About</a>
-        <button class="button" id="themeBtn" type="button">Theme</button>
-      </nav>
-    </div>
+  <header class="site-header wrap">
+    <a href="index.html" class="brand" data-site-title>Keishiro Sakamoto</a>
+    <nav class="nav">
+      <a href="index.html">Articles</a>
+      <a href="#tags">Tags</a>
+      <a href="post.html?p=about">About</a>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="ダーク / ライト切替">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
+      </button>
+    </nav>
   </header>
 
   <main class="wrap">
     <section class="hero">
-      <div class="hero-card">
-        <h2>ようこそ</h2>
-        <p>
-            学んだことや考えたことについて備忘録として残していきます。
-        </p>
-        <!-- <div class="hero-actions"> -->
-        <!--   <a class="button primary" href="#posts">記事を見る</a> -->
-        <!--   <a class="button" href="#structure">構成を見る</a> -->
-        <!-- </div> -->
-      </div>
+      <h1 class="hero-title">Notes<span class="dot">.</span></h1>
+      <p class="hero-lead">学んだことや考えたことの備忘録。研究（熱工学）と開発について、数式とコードを交えて残しています。</p>
     </section>
 
-    <section class="layout" id="posts">
-      <aside class="sidebar">
-        <h3>Search</h3>
-        <input class="search" id="searchInput" type="search" placeholder="記事を検索" />
-        <div style="height:12px"></div>
-        <h3>Tags</h3>
-        <div class="tree" style="padding:12px; background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius);">
-          <ul class="tree-list" id="treeList"></ul>
-        </div>
-      </aside>
+    <section id="posts">
+      <div class="filter-bar">
+        <ul class="tabs" id="categoryTabs" aria-label="カテゴリ"></ul>
+        <label class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="sr-only">記事を検索</span>
+          <input id="searchInput" type="search" placeholder="Search（/ でフォーカス）" />
+        </label>
+      </div>
 
-      <div>
-        <div class="section-head">
-          <div>
-            <h3 id="currentDirTitle">All articles</h3>
-            <p id="resultCount">0件</p>
-          </div>
-          <div class="meta" id="currentDirPath">/</div>
-        </div>
-        <div class="posts" id="postList"></div>
-        <div class="pagination" id="pagination"></div>
+      <div class="list-meta">
+        <span><strong id="listTitle">All</strong>　<span id="resultCount">0件</span></span>
+        <div class="filters" id="activeFilters"></div>
+      </div>
+
+      <ol class="rows" id="postList"></ol>
+      <div class="pagination" id="pagination"></div>
+
+      <div class="tag-section" id="tags">
+        <span class="tag-section-label">Tags</span>
+        <div class="tag-list" id="tagList"></div>
       </div>
     </section>
-
-    <footer>
-      <div class="footer-inner">
-        <div>© <span id="year"></span> Keishiro Sakamoto</div>
-        <!-- <div></div> -->
-      </div>
-    </footer>
   </main>
 
-  <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script defer src="assets/js/index.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <footer class="site-footer wrap">
+    <span>© <span id="year"></span> <span data-site-title>Keishiro Sakamoto</span></span>
+  </footer>
 </body>
 </html>
-

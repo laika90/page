@@ -3,69 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Notes</title>
-  <meta name="description" content="GitHub Pages向けの、ディレクトリ構成で管理しやすいLaTeX対応サイト原型" />
+  <title>Keishiro Sakamoto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="assets/css/theme.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
-  <script>
-    (function () {
-      const saved = localStorage.getItem('theme');
-      const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.dataset.theme = saved || (systemDark ? 'dark' : 'light');
-    })();
-  </script>
+  <script src="assets/js/config.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
+  <script defer src="assets/js/common.js"></script>
+  <script defer src="assets/js/post.js"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-  <header class="header">
-    <div class="wrap header-inner">
-      <div class="brand">
-        <a href="index.html" class="brand">
-        <div class="brand-mark" aria-hidden="true"></div>
-        <div>
-          <p class="brand-title">Keishiro Sakamoto</p>
-          <!-- <p class="brand-subtitle">directory-based blog starter</p> -->
-        </div>
-        </a>
-      </div>
-      <nav class="nav">
-        <a href="index.html#posts">About</a>
-        <a class="button" id="themeBtn", type="button">Theme</a>
-      </nav>
-    </div>
+  <header class="site-header wrap">
+    <a href="index.html" class="brand" data-site-title>Keishiro Sakamoto</a>
+    <nav class="nav">
+      <a href="index.html">Articles</a>
+      <a href="index.html#tags">Tags</a>
+      <a href="post.html?p=about">About</a>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="ダーク / ライト切替">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
+      </button>
+    </nav>
   </header>
 
   <main class="wrap">
-    <section class="hero">
-      <div class="hero-card">
-        <span class="eyebrow">Article</span>
-        <h2 id="articleTitle">Loading...</h2>
-        <p id="articleMeta" class="meta">記事を読み込んでいます。</p>
-      </div>
+    <section class="post-head">
+      <p class="post-category" id="articleCategory"></p>
+      <h1 class="post-title" id="articleTitle">Loading...</h1>
     </section>
 
-    <!-- <section class="layout" id="posts"> -->
-    <section class="layout-post" id="posts">
-      <!-- <aside class="sidebar"> -->
-      <!-- </aside> -->
+    <div class="post-layout">
+      <aside class="post-aside">
+        <dl class="post-meta" id="articleMeta"></dl>
+        <div class="aside-block" id="tagsBlock" hidden>
+          <p class="aside-label">Tags</p>
+          <div class="tag-list small" id="articleTags"></div>
+        </div>
+        <div class="aside-block" id="tocWrap" hidden>
+          <p class="aside-label">Contents</p>
+          <nav id="toc" aria-label="目次"></nav>
+        </div>
+      </aside>
 
-      <div>
-        <article class="article active" id="articleView">
-          <div id="articleBody">
-          </div>
-        </article>
-
+      <div class="post-main">
+        <article class="prose" id="articleBody"></article>
+        <section class="related" id="related" hidden></section>
+        <nav class="pager" id="pager" aria-label="前後の記事"></nav>
       </div>
-    </section>
-
-    <footer>
-      <div class="footer-inner">
-        <div>© <span id="year"></span> Keishiro Sakamoto</div>
-        <!-- <div></div> -->
-      </div>
-    </footer>
+    </div>
   </main>
 
-  <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script defer src="assets/js/post.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <footer class="site-footer wrap">
+    <span>© <span id="year"></span> <span data-site-title>Keishiro Sakamoto</span></span>
+    <a href="index.html">← All articles</a>
+  </footer>
 </body>
 </html>

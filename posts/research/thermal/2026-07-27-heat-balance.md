@@ -1,7 +1,7 @@
 ---
 title: 熱収支のメモ
 date: 2026-07-27
-dir: posts/research/thermal
+tags: [thermal]
 ---
 
 この記事では、熱収支を単純化して考える。

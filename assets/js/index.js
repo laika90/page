@@ -1,348 +1,275 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const MANIFEST_URL = 'posts/manifest.json';
+/* 記事一覧ページ：検索・カテゴリ（階層タブ）・タグ・ページネーション。状態は URL に保存される */
+document.addEventListener('DOMContentLoaded', async () => {
+  const PAGE_SIZE = 10;
+  const { escapeHtml: esc, postUrl } = window.Site;
+  const $ = (id) => document.getElementById(id);
 
   const els = {
-    treeList: document.getElementById('treeList'),
-    searchInput: document.getElementById('searchInput'),
-    postList: document.getElementById('postList'),
-    resultCount: document.getElementById('resultCount'),
-    currentTagTitle: document.getElementById('currentDirTitle'),
-    currentTagPath: document.getElementById('currentDirPath'),
-    themeBtn: document.getElementById('themeBtn'),
-    year: document.getElementById('year'),
+    search: $('searchInput'),
+    tabs: $('categoryTabs'),
+    tagList: $('tagList'),
+    list: $('postList'),
+    count: $('resultCount'),
+    title: $('listTitle'),
+    filters: $('activeFilters'),
+    pagination: $('pagination'),
   };
 
-  const PAGE_SIZE = 6;
-
-  const state = {
-    query: '',
-    tag: 'all',
-    page: 1,
-  };
-
+  const state = readState();
   let posts = [];
-  let tags = ['all'];
 
-  init().catch((error) => {
-    console.error(error);
-    els.postList.innerHTML = `
-      <div class="card">
-        記事一覧の読み込みに失敗しました。<br>
-        <span class="meta">${escapeHtml(String(error?.message || error))}</span>
-      </div>
-    `;
+  try {
+    posts = await window.Site.loadIndex();
+  } catch (e) {
+    console.error(e);
+    els.list.innerHTML = `<li class="empty">記事一覧の読み込みに失敗しました。<br>${esc(e.message)}</li>`;
+    return;
+  }
+
+  posts.sort((a, b) => (b.date || '').localeCompare(a.date || '') || a.title.localeCompare(b.title, 'ja'));
+  posts.forEach((p, i) => {
+    p._hay = [p.title, p.summary, p.category, p.tags.join(' '), p.text].join(' ').toLowerCase();
+    p._no = String(posts.length - i).padStart(2, '0'); // 古い順の通し番号
   });
 
-  async function init() {
-    els.year.textContent = new Date().getFullYear();
-    bindThemeToggle();
-    bindSearch();
+  els.search.value = state.q;
+  render();
 
-    posts = await loadManifest();
-    tags = ['all', ...new Set(posts.flatMap((p) => p.tags))].sort((a, b) =>
-      a.localeCompare(b, 'ja')
-    );
+  let typingTimer;
+  els.search.addEventListener('input', () => {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+      state.q = els.search.value;
+      state.page = 1;
+      update(true);
+    }, 120);
+  });
 
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      els.search.focus();
+    }
+  });
+
+  window.addEventListener('popstate', () => {
+    Object.assign(state, readState());
+    els.search.value = state.q;
     render();
-  }
+  });
 
-  async function loadManifest() {
-    const response = await fetch(MANIFEST_URL, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`manifest fetch failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (Array.isArray(data)) {
-      if (data.length > 0 && typeof data[0] === 'string') {
-        return data.map((path) => normalizePost({ path }));
-      }
-      return data.map(normalizePost).filter((p) => p.path);
-    }
-
-    if (Array.isArray(data.files)) {
-      return data.files.map((path) => normalizePost({ path }));
-    }
-
-    if (Array.isArray(data.paths)) {
-      return data.paths.map((path) => normalizePost({ path }));
-    }
-
-    return [];
-  }
-
-  function normalizePost(post) {
-    const path = post.path || '';
-    const tags = normalizeTags(post.tags || post.tag || post.dir);
-
+  // ------------------------------------------------------------ state <-> URL
+  function readState() {
+    const sp = new URLSearchParams(location.search);
     return {
-      title: post.title || titleFromPath(path),
-      date: post.date || '',
-      summary: post.summary || '',
-      path,
-      tags: tags.length ? tags : ['未分類'],
+      q: sp.get('q') || '',
+      tag: sp.get('tag') || '',
+      cat: sp.get('cat') || '',
+      page: Math.max(1, parseInt(sp.get('page') || '1', 10) || 1),
     };
   }
 
-  function normalizeTags(value) {
-    if (!value) return [];
-    if (Array.isArray(value)) return value.map(String).map((s) => s.trim()).filter(Boolean);
-    return String(value)
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+  function update(replace = false) {
+    const sp = new URLSearchParams();
+    const trialPalette = new URLSearchParams(location.search).get('palette');
+    if (trialPalette) sp.set('palette', trialPalette);
+    if (state.q) sp.set('q', state.q);
+    if (state.cat) sp.set('cat', state.cat);
+    if (state.tag) sp.set('tag', state.tag);
+    if (state.page > 1) sp.set('page', state.page);
+    const qs = sp.toString();
+    history[replace ? 'replaceState' : 'pushState'](null, '', qs ? `?${qs}` : location.pathname);
+    render();
   }
 
+  function setFilter(patch) {
+    Object.assign(state, patch, { page: 1 });
+    update();
+  }
+
+  // ------------------------------------------------------------ render
   function render() {
-    renderTree();
+    renderTabs();
+    renderTags();
     renderPosts();
   }
 
-  function renderTree() {
-    const counts = Object.fromEntries(
-      tags.map((t) => [
-        t,
-        t === 'all' ? posts.length : posts.filter((p) => p.tags.includes(t)).length,
-      ])
-    );
+  /** カテゴリの木を作る（count は子孫を含む） */
+  function buildTree() {
+    const root = { children: new Map() };
+    for (const p of posts) {
+      if (!p.category) continue;
+      let node = root;
+      let path = '';
+      for (const part of p.category.split('/')) {
+        path = path ? `${path}/${part}` : part;
+        if (!node.children.has(part)) node.children.set(part, { name: part, path, count: 0, children: new Map() });
+        node = node.children.get(part);
+        node.count++;
+      }
+    }
+    return root;
+  }
 
-    els.treeList.innerHTML = '';
-    tags.forEach((tag) => {
-      const li = document.createElement('li');
-      li.className = `tree-item ${state.tag === tag ? 'active' : ''}`;
-      li.innerHTML = `<span>${tag === 'all' ? 'All articles' : tag}</span><span class="count">${counts[tag]}</span>`;
+  function renderTabs() {
+    els.tabs.innerHTML = '';
+    els.tabs.appendChild(tab('All', '', posts.length, 0));
 
-      li.addEventListener('click', () => {
-        state.tag = tag;
-        state.page = 1;
-        render();
+    const walk = (node, depth) => {
+      [...node.children.values()]
+        .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+        .forEach((child) => {
+          els.tabs.appendChild(tab(child.name, child.path, child.count, depth));
+          walk(child, depth + 1);
+        });
+    };
+    walk(buildTree(), 1);
+  }
+
+  function tab(label, path, count, depth) {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    const active = path === state.cat && (path !== '' || (!state.tag && !state.q));
+    btn.className = `tab${active ? ' active' : ''}${depth > 1 ? ' sub' : ''}`;
+    btn.setAttribute('aria-pressed', String(active));
+    btn.innerHTML = `${depth > 1 ? '└ ' : ''}${esc(label)} <span class="n">${count}</span>`;
+    btn.addEventListener('click', () => (path === '' ? setFilter({ cat: '', tag: '', q: (els.search.value = '') }) : setFilter({ cat: path })));
+    li.appendChild(btn);
+    return li;
+  }
+
+  function renderTags() {
+    const counts = new Map();
+    posts.forEach((p) => p.tags.forEach((t) => counts.set(t, (counts.get(t) || 0) + 1)));
+    const tags = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ja'));
+
+    els.tagList.innerHTML = tags.length ? '' : '<span class="meta">タグはまだありません</span>';
+    tags.forEach(([tag, n]) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `tag${state.tag === tag ? ' active' : ''}`;
+      btn.setAttribute('aria-pressed', String(state.tag === tag));
+      btn.innerHTML = `${esc(tag)} <small>${n}</small>`;
+      btn.addEventListener('click', () => {
+        setFilter({ tag: state.tag === tag ? '' : tag });
+        $('posts').scrollIntoView({ behavior: 'smooth' });
       });
-
-      els.treeList.appendChild(li);
+      els.tagList.appendChild(btn);
     });
   }
 
-
-  // function renderTree() {
-  //   const counts = Object.fromEntries(
-  //     tags.map((t) => [
-  //       t,
-  //       t === 'all' ? posts.length : posts.filter((p) => p.tags.includes(t)).length,
-  //     ])
-  //   );
-  //
-  //   els.treeList.innerHTML = '';
-  //   tags.forEach((tag) => {
-  //     const li = document.createElement('li');
-  //     li.className = `tree-item ${state.tag === tag ? 'active' : ''}`;
-  //     li.innerHTML = `<span>${tag === 'all' ? 'All articles' : tag}</span><span class="count">${counts[tag]}</span>`;
-  //     li.addEventListener('click', () => {
-  //       state.tag = tag;
-  //       render();
-  //     });
-  //     els.treeList.appendChild(li);
-  //   });
-  // }
-
   function filteredPosts() {
-    const q = state.query.trim().toLowerCase();
+    const terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+    return posts.filter((p) => {
+      if (state.tag && !p.tags.includes(state.tag)) return false;
+      if (state.cat && p.category !== state.cat && !p.category.startsWith(`${state.cat}/`)) return false;
+      return terms.every((t) => p._hay.includes(t));
+    });
+  }
 
-    return posts
-      .filter((post) => {
-        const byTag = state.tag === 'all' || post.tags.includes(state.tag);
-        const haystack = [post.title, post.summary, post.tags.join(' '), post.path].join(' ').toLowerCase();
-        const byQuery = !q || haystack.includes(q);
-        return byTag && byQuery;
-      })
-      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  function renderFilters() {
+    const chips = [];
+    if (state.cat) chips.push(['cat', state.cat]);
+    if (state.tag) chips.push(['tag', `#${state.tag}`]);
+    if (state.q) chips.push(['q', `“${state.q}”`]);
+
+    els.title.textContent = state.tag ? `#${state.tag}` : state.cat || (state.q ? 'Search' : 'All');
+    els.filters.innerHTML = '';
+    chips.forEach(([key, label]) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'filter-chip';
+      btn.title = 'このフィルタを解除';
+      btn.innerHTML = `${esc(label)} <span aria-hidden="true">×</span>`;
+      btn.addEventListener('click', () => {
+        if (key === 'q') els.search.value = '';
+        setFilter({ [key]: '' });
+      });
+      els.filters.appendChild(btn);
+    });
   }
 
   function renderPosts() {
+    renderFilters();
     const list = filteredPosts();
     const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
     state.page = Math.min(state.page, totalPages);
+    const items = list.slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
 
-    const start = (state.page - 1) * PAGE_SIZE;
-    const pageItems = list.slice(start, start + PAGE_SIZE);
+    els.count.textContent = `${list.length}件`;
+    els.list.innerHTML = '';
 
-    els.resultCount.textContent = `${list.length}件`;
-    els.currentTagTitle.textContent = state.tag === 'all' ? 'All articles' : state.tag;
-    els.currentTagPath.textContent = state.tag === 'all' ? 'tag: all' : `tag: ${state.tag}`;
-    els.postList.innerHTML = '';
-
-    if (!pageItems.length) {
-      els.postList.innerHTML = '<div class="card">該当する記事がありません。</div>';
+    if (!items.length) {
+      els.list.innerHTML = '<li class="empty">該当する記事がありません。</li>';
       renderPagination(0);
       return;
     }
 
-    pageItems.forEach((post) => {
-      const card = document.createElement('a');
-      card.className = 'card';
-      card.href = `post.html?path=${encodeURIComponent(post.path)}`;
-      card.innerHTML = `
-        <div class="card-top">
-          <div class="card-tags">
-            ${post.tags.map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`).join('')}
-          </div>
-          <span class="meta card-date">${escapeHtml(post.date)}</span>
-        </div>
-        <h4>${escapeHtml(post.title)}</h4>
-        <p class="excerpt">${escapeHtml(post.summary)}</p>
-      `;
-      els.postList.appendChild(card);
-    });
+    els.list.innerHTML = items
+      .map(
+        (p) => `
+        <li class="row">
+          <a class="row-link" href="${postUrl(p.slug)}">
+            <span class="row-no">${p._no}</span>
+            <span class="row-main">
+              <span class="row-title">${esc(p.title)}${p.draft ? ' <span class="draft">[draft]</span>' : ''}</span>
+              ${p.summary ? `<span class="row-summary">${esc(p.summary)}</span>` : ''}
+              ${p.tags.length ? `<span class="row-tags">${p.tags.map((t) => `<span>#${esc(t)}</span>`).join('')}</span>` : ''}
+            </span>
+            <span class="row-cat">${esc(p.category.split('/').join(' / '))}</span>
+            <time class="row-date" datetime="${esc(p.date)}">${esc(p.date.replaceAll('-', '.'))}</time>
+          </a>
+        </li>`
+      )
+      .join('');
 
     renderPagination(totalPages);
   }
 
-  // function renderPosts() {
-  //   const list = filteredPosts();
-  //   els.resultCount.textContent = `${list.length}件`;
-  //   els.currentTagTitle.textContent = state.tag === 'all' ? 'All articles' : state.tag;
-  //   els.currentTagPath.textContent = state.tag === 'all' ? 'tag: all' : `tag: ${state.tag}`;
-  //   els.postList.innerHTML = '';
-  //
-  //   if (!list.length) {
-  //     els.postList.innerHTML = '<div class="card">該当する記事がありません。</div>';
-  //     return;
-  //   }
-  //
-  //   list.forEach((post) => {
-  //     const card = document.createElement('a');
-  //     card.className = 'card';
-  //     card.href = `post.html?path=${encodeURIComponent(post.path)}`;
-  //     card.innerHTML = `
-  //       <div class="card-top">
-  //         <div class="card-tags">
-  //           ${post.tags.map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`).join('')}
-  //         </div>
-  //         <span class="meta card-date">${escapeHtml(post.date)}</span>
-  //       </div>
-  //       <h4>${escapeHtml(post.title)}</h4>
-  //       <p class="excerpt">${escapeHtml(post.summary)}</p>
-  //     `;
-  //     els.postList.appendChild(card);
-  //   });
-  // }
-  //
-
   function renderPagination(totalPages) {
-    const paginationEl = document.getElementById('pagination');
-    if (!paginationEl) return;
-
-    paginationEl.innerHTML = '';
+    const el = els.pagination;
+    el.innerHTML = '';
     if (totalPages <= 1) return;
 
-    const createButton = (label, page, disabled = false, active = false) => {
+    const make = (label, page, disabled = false, active = false) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = `page-btn ${active ? 'active' : ''}`;
+      btn.className = `page-btn${active ? ' active' : ''}`;
       btn.textContent = label;
       btn.disabled = disabled;
+      if (active) btn.setAttribute('aria-current', 'page');
       btn.addEventListener('click', () => {
         if (page === state.page) return;
         state.page = page;
-        renderPosts();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        update();
+        $('posts').scrollIntoView({ behavior: 'smooth' });
       });
       return btn;
     };
 
-    paginationEl.appendChild(
-      createButton('Prev', Math.max(1, state.page - 1), state.page === 1)
-    );
-
-    const pages = buildPageList(totalPages, state.page);
-    pages.forEach((item) => {
+    el.appendChild(make('←', Math.max(1, state.page - 1), state.page === 1));
+    buildPageList(totalPages, state.page).forEach((item) => {
       if (item === '...') {
         const span = document.createElement('span');
         span.className = 'page-ellipsis';
-        span.textContent = '...';
-        paginationEl.appendChild(span);
+        span.textContent = '…';
+        el.appendChild(span);
       } else {
-        paginationEl.appendChild(
-          createButton(String(item), item, false, item === state.page)
-        );
+        el.appendChild(make(String(item), item, false, item === state.page));
       }
     });
-
-    paginationEl.appendChild(
-      createButton('Next', Math.min(totalPages, state.page + 1), state.page === totalPages)
-    );
+    el.appendChild(make('→', Math.min(totalPages, state.page + 1), state.page === totalPages));
   }
 
-  function buildPageList(totalPages, currentPage) {
-    const pages = [];
-    const delta = 2;
-
-    const left = Math.max(2, currentPage - delta);
-    const right = Math.min(totalPages - 1, currentPage + delta);
-
-    pages.push(1);
-
+  function buildPageList(total, current) {
+    const pages = [1];
+    const left = Math.max(2, current - 2);
+    const right = Math.min(total - 1, current + 2);
     if (left > 2) pages.push('...');
-
-    for (let p = left; p <= right; p++) {
-      pages.push(p);
-    }
- 
-    if (right < totalPages - 1) pages.push('...');
-
-    if (totalPages > 1) pages.push(totalPages);
-
-    return [...new Set(pages)];
-  }
-
-  function bindSearch() {
-    els.searchInput.addEventListener('input', (e) => {
-      state.query = e.target.value;
-      state.page = 1;
-      renderPosts();
-    });
-  }
-
-
-  // function bindSearch() {
-  //   els.searchInput.addEventListener('input', (e) => {
-  //     state.query = e.target.value;
-  //     renderPosts();
-  //   });
-  // }
-
-  function bindThemeToggle() {
-    els.themeBtn.addEventListener('click', () => {
-      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
-      localStorage.setItem('theme', next);
-    });
-  }
-
-  function titleFromPath(path) {
-    const file = String(path).split('/').pop() || '';
-    return file
-      .replace(/\.md$/i, '')
-      .replace(/^\d{4}-\d{2}-\d{2}-/, '')
-      .replace(/[-_]+/g, ' ');
-  }
-
-  function escapeHtml(text) {
-    return String(text)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+    for (let p = left; p <= right; p++) pages.push(p);
+    if (right < total - 1) pages.push('...');
+    if (total > 1) pages.push(total);
+    return pages;
   }
 });
-
-window.MathJax = {
-  tex: {
-    inlineMath: [['\\(', '\\)']],
-    displayMath: [['$$', '$$'], ['\\[', '\\]']]
-  },
-  options: {
-    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-  }
-};

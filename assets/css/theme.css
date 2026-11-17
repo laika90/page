@@ -1,0 +1,65 @@
+/* ==========================================================================
+   theme.css — サイトの見た目はここだけ編集すれば変えられます
+   --------------------------------------------------------------------------
+   1. 差し色（パレット）は assets/js/config.js の SITE.palette で選ぶ
+      'blue' | 'red' | 'green' | 'orange' | 'purple' | 'mono'
+      → URL に ?palette=red を付けると、その場で試せます
+   2. 独自の色にしたいときは、下の「独自パレット」の例をコピーして追加
+   3. 文字・背景・罫線などの基本色は :root（ライト）と [data-theme="dark"]
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- 基本色 (ライト) */
+:root {
+  --bg: #ffffff;          /* 背景 */
+  --surface: #f4f4f4;     /* 検索欄など */
+  --text: #0a0a0a;        /* 本文 */
+  --muted: #5f6368;       /* 補足テキスト */
+  --line: #e3e3e3;        /* 細い罫線 */
+  --rule: #0a0a0a;        /* 太い罫線（区切り） */
+  --code-bg: #0a0a0a;
+  --code-text: #f4f4f4;
+  --inline-code-bg: #f1f1f1;
+  --selection: color-mix(in srgb, var(--accent) 22%, transparent);
+
+  /* フォント */
+  --font-sans: "Inter", "Noto Sans JP", ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* 文字サイズ・レイアウト */
+  --hero-size: clamp(56px, 10vw, 104px);  /* 一覧ページの大見出し */
+  --title-size: clamp(32px, 5.2vw, 60px); /* 記事タイトル */
+  --body-size: 17px;
+  --maxw: 1200px;
+  --radius: 0px;           /* 角丸。0 で Swiss らしいシャープさ、6px などで柔らかく */
+}
+
+/* ---------------------------------------------------------------- 基本色 (ダーク) */
+html[data-theme="dark"] {
+  --bg: #0d0d0f;
+  --surface: #1a1a1d;
+  --text: #f2f2f2;
+  --muted: #a1a1aa;
+  --line: #2a2a2e;
+  --rule: #f2f2f2;
+  --code-bg: #18181b;
+  --code-text: #e4e4e7;
+  --inline-code-bg: #232327;
+}
+
+/* ---------------------------------------------------------------- 差し色パレット
+   --accent-light : ライトテーマで使う色（白背景でコントラスト 4.5:1 以上）
+   --accent-dark  : ダークテーマで使う色（明るめ）                                */
+html,
+html[data-palette="blue"]   { --accent-light: #1d4ed8; --accent-dark: #7aa2ff; }
+html[data-palette="red"]    { --accent-light: #d1002a; --accent-dark: #ff6b7f; }
+html[data-palette="green"]  { --accent-light: #0f7b4f; --accent-dark: #4fd69c; }
+html[data-palette="orange"] { --accent-light: #c2410c; --accent-dark: #ff9b5e; }
+html[data-palette="purple"] { --accent-light: #6d28d9; --accent-dark: #b794ff; }
+html[data-palette="mono"]   { --accent-light: #0a0a0a; --accent-dark: #f2f2f2; }
+
+/* 独自パレットの例（config.js で palette: 'teal' と指定）
+html[data-palette="teal"]   { --accent-light: #0f766e; --accent-dark: #5eead4; }
+*/
+
+html { --accent: var(--accent-light); --accent-contrast: #ffffff; }
+html[data-theme="dark"] { --accent: var(--accent-dark); --accent-contrast: #0a0a0a; }
