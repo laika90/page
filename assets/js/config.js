@@ -7,7 +7,7 @@
 window.SITE = {
   title: 'Keishiro Sakamoto',
   // 差し色: 'blue' | 'red' | 'green' | 'orange' | 'purple' | 'mono'（theme.css に追加した独自名も可）
-  palette: 'blue',
+  palette: 'purple',
   // 初期テーマ: 'system'（OS に合わせる） | 'light' | 'dark'
   defaultTheme: 'system',
   // 記事の h2 見出しに 01, 02 … と番号を振る

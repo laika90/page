@@ -1,61 +1,19 @@
 {
  "posts": [
   {
-   "slug": "guide/2026-11-17-how-to-write",
-   "title": "記事の書き方（このサイトの使い方）",
-   "date": "2026-11-17",
+   "slug": "Computation/pseudospectral",
+   "title": "擬スペクトル法",
+   "date": "2026-11-27",
    "updated": "",
-   "category": "guide",
+   "category": "Computation",
    "tags": [
-    "guide",
-    "latex",
-    "markdown"
+    "computation",
+    "control",
+    "optimization"
    ],
-   "summary": "front matter・数式・コード・画像・記事間リンクの書き方まとめ。",
+   "summary": "概要",
    "draft": false,
-   "text": "このサイトでは posts/ 以下に Markdown ファイルを置くだけ で記事が増えます。 一覧（posts/index.json）はスクリプトが自動生成するので、手で編集する必要はありません。 ファイルの置き場所 = カテゴリ フォルダ階層がそのままカテゴリ（階層構造）になります。 記事の URL は post.html?p=research/thermal/2026-07-26-lhp のようになります。 front matter ファイル先頭に書くメタ情報です。すべて省略可能です。 タグは次のようにリスト形式でも書けます。 数式（LaTeX） MathJax を使っています。Markdown の記法と干渉しないよう、数式部分は保護してから変換しています。 インライン $...$ または ... で書きます：$E = mc^2$、 \\alpha{\\mathrm{eff}} = \\frac{k}{\\rho cp} 。 ドル記号そのものを書きたいときは \\$ とエスケープします（例：\\$100）。 ディスプレイ ... または ... ： \\nabla \\cdot \\boldsymbol{q} = -\\rho cp \\frac{\\partial T}{\\partial t} + \\dot{q}{\\mathrm{gen}} 番号付き数式と参照 \\begin{align} などの環境は そのまま 書けます。\\label を付ければ \\eqref で参照できます。 \\begin{align} Q &= U A \\, \\Delta T{\\mathrm{lm}} \\label{eq:lmtd} \\\\ \\Delta T{\\mathrm{lm}} &= \\frac{\\Delta T1 - \\Delta T2}{\\ln(\\Delta T1 / \\Delta T2)} \\label{eq:dtlm} \\end{align} 式 \\eqref{eq:lmtd} に式 \\eqref{eq:dtlm} を代入すると……のように書けます。 独自マクロ assets/js/config.js の macros に登録すると全記事で使えます。初期状態で以下が入っています。 \\pdv{T}{t} = \\alpha \\nabla^2 T, \\qquad \\vb{x} \\in \\R^3, \\qquad \\int f(x)\\,\\dd x コード 言語名を付けるとハイライトされます（右上に Copy ボタン）。 コード中の $x$ や は数式として扱われません。 表 物質 熱伝導率 $k$ [W/(m·K)] ---- ---------------------: 銅 398 アルミ 237 水 0.61 画像と記事間リンク 画像は Markdown ファイルからの 相対パス で書けます（記事と同じフォルダに置けば管理が楽です）。 他の記事へのリンクも .md ファイルへの相対パスで書けば、自動で記事ページへのリンクに変換されます。 LHP のメモ GitHub Pages に置く最小構成 引用やメモにはブロッククォートが使えます。"
-  },
-  {
-   "slug": "research/thermal/2026-07-27-heat-balance",
-   "title": "熱収支のメモ",
-   "date": "2026-07-27",
-   "updated": "",
-   "category": "research/thermal",
-   "tags": [
-    "thermal"
-   ],
-   "summary": "この記事では、熱収支を単純化して考える。 インライン数式の例： ブロック数式の例： さらに、定常状態では となる。",
-   "draft": false,
-   "text": "この記事では、熱収支を単純化して考える。 インライン数式の例： Q{\\mathrm{in}} = Q{\\mathrm{out}} ブロック数式の例： m cp \\frac{dT}{dt} = Q{\\mathrm{in}} - Q{\\mathrm{out}} さらに、定常状態では Q{\\mathrm{in}} = Q{\\mathrm{out}} となる。"
-  },
-  {
-   "slug": "research/thermal/2026-07-26-lhp",
-   "title": "ループヒートパイプ（LHP）の簡易モデル",
-   "date": "2026-07-26",
-   "updated": "",
-   "category": "research/thermal",
-   "tags": [
-    "research",
-    "thermal",
-    "latex"
-   ],
-   "summary": "LHP の熱抵抗ネットワークと圧力損失のバランスを整理した研究メモ。",
-   "draft": false,
-   "text": "ループヒートパイプ（Loop Heat Pipe, LHP）の動作を、熱抵抗ネットワークと圧力バランスで簡易的に表すメモ。 LHP の模式図 熱抵抗ネットワーク 蒸発器から凝縮器までの熱輸送を、直列の熱抵抗で近似する。 R{\\mathrm{total}} = R{\\mathrm{evap}} + R{\\mathrm{vl}} + R{\\mathrm{cond}} 熱負荷 $Q$ に対する蒸発器温度は \\begin{equation} T{\\mathrm{evap}} = T{\\mathrm{sink}} + Q \\, R{\\mathrm{total}} \\label{eq:tevap} \\end{equation} 圧力バランス ウィックの毛細管力が、ループ全体の圧力損失を上回る必要がある。 \\begin{equation} \\Delta P{\\mathrm{cap,max}} = \\frac{2 \\sigma \\cos\\theta}{r{\\mathrm{p}}} \\geq \\Delta P{\\mathrm{v}} + \\Delta P{\\mathrm{l}} + \\Delta P{\\mathrm{w}} + \\Delta P{\\mathrm{g}} \\label{eq:cap} \\end{equation} ここで $\\sigma$ は表面張力、$r{\\mathrm{p}}$ は有効細孔半径。 蒸気ラインの圧力損失 層流を仮定すると Hagen–Poiseuille 則より \\Delta P{\\mathrm{v}} = \\frac{128 \\mu{\\mathrm{v}} L{\\mathrm{v}} \\dot{m}}{\\pi \\rho{\\mathrm{v}} D{\\mathrm{v}}^4}, \\qquad \\dot{m} = \\frac{Q}{h{\\mathrm{fg}}} まとめ 式 \\eqref{eq:tevap} から、熱抵抗の低減が温度低下に直結する 式 \\eqref{eq:cap} が輸送限界を決める 記法の詳細は 記事の書き方 を参照。"
-  },
-  {
-   "slug": "dev/2026-07-24-github-pages",
-   "title": "GitHub Pages に置く最小構成",
-   "date": "2026-07-24",
-   "updated": "",
-   "category": "dev",
-   "tags": [
-    "develop",
-    "github"
-   ],
-   "summary": "静的ファイルだけで公開するための最小構成メモ。 ローカルで確認 file:// で HTML を直接開くと fetch がブロックされるため、必ずサーバー経由で開く。 デプロイ main に push すると GitHub Actions …",
-   "draft": false,
-   "text": "静的ファイルだけで公開するための最小構成メモ。 ローカルで確認 file:// で HTML を直接開くと fetch がブロックされるため、必ずサーバー経由で開く。 デプロイ main に push すると GitHub Actions が posts/index.json を生成して Pages に公開する。 初回のみ Settings → Pages → Source を「GitHub Actions」にしておく。"
+   "text": "概要"
   }
  ]
 }
